@@ -3,42 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>Happy Diwali Rashmiii! </title>
     <style>
         body {
             background-color: magenta; /* Set background color to magenta */
             color: white; /* Change text color for better contrast */
             overflow: hidden; /* Prevent scrollbars from appearing */
+            font-family: Arial, sans-serif; /* Set a simple font */
         }
         canvas {
             position: absolute;
             top: 0;
             left: 0;
         }
+        h1 {
+            position: relative; /* Position relative to overlay on the canvas */
+            z-index: 1; /* Ensure it appears above the canvas */
+            text-align: center;
+            margin-top: 20%; /* Center vertically */
+        }
     </style>
 </head>
 <body>
     <canvas id="fireworks"></canvas>
-    <h1>Happy Diwali Rashmiiiii!</h1>
+    <h1>Happy Diwali!</h1>
 
-    <script src="https://cdn.rawgit.com/HubSpot/fireworks/master/dist/fireworks.js"></script>
     <script>
         const canvas = document.getElementById('fireworks');
         const ctx = canvas.getContext('2d');
-        
-        // Set the canvas to fill the entire window
+
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Create fireworks effect
-        const fireworks = new Fireworks(canvas, {
-            autoresize: true,
-            opacity: 0.8,
-            delay: 200,
-            sound: false
-        });
+        function Firework(x, y) {
+            this.x = x;
+            this.y = y;
+            this.hue = Math.random() * 360;
+            this.particles = [];
+            this.explode = false;
 
-        fireworks.start();
+            for (let i = 0; i < 100; i++) {
+                this.particles.push(new Particle(this.x, this.y, this.hue));
+            }
+        }
+
+        function Particle(x, y, hue) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 5 + 2;
+            this.speedX = (Math.random() - 0.5) * 10;
+            this.speedY = (Math.random() - 0.5) * 10;
+            this.hue = hue;
+            this.alpha = 1;
+        }
+
+        Firework.prototype.update = function() {
+            this.particles.forEach((particle) => {
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                particle.alpha -= 0.02;
+            });
+            this.explode = this.particles.every(particle => particle.alpha <= 0);
+        };
+
+        Particle.prototype.update = function() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.alpha -= 0.02;
+        };
+
+        let fireworks = [];
+        function animate() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (Math.random() < 0.1) {
+                fireworks.push(new Firework(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+
+            fireworks.forEach((firework, index) => {
+                firework.update();
+                if (firework.explode) {
+                    fireworks.splice(index, 1);
+                }
+                firework.particles.forEach((particle) => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsl(${particle.hue}, 100%, 50%)`;
+                    ctx.globalAlpha = particle.alpha;
+                    ctx.fill();
+                });
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
